@@ -46,8 +46,9 @@ func (hc Hashcash) Compute(resource string) (Header, error) {
 }
 
 func (hc Hashcash) acceptable(h Header) bool {
+	wantZeros := hc.bits / 4
 	hash := h.Hash()
-	for i := range hash[:hc.bits] {
+	for i := range hash[:wantZeros] {
 		if hash[i] != '0' {
 			return false
 		}

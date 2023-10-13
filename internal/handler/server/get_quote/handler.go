@@ -3,6 +3,7 @@ package get_quote
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 
@@ -23,39 +24,37 @@ type Handler struct {
 	verifier verifier
 }
 
-func NewHandler(log *slog.Logger, storage storage) *Handler {
-	return &Handler{log: log, storage: storage}
+func NewHandler(log *slog.Logger, storage storage, verifier verifier) *Handler {
+	return &Handler{log: log, storage: storage, verifier: verifier}
 }
 
-func (h *Handler) Handle(ctx context.Context, r io.Reader, w io.Writer) {
+func (h *Handler) Handle(ctx context.Context, r io.Reader, w io.Writer) error {
 	in, err := bufio.NewReader(r).ReadString('\n')
 	if err != nil {
-		h.log.Error("failed to read data", "err", err.Error())
-		return
+		return fmt.Errorf("failed to read data: %w", err)
 	}
 
+	in = in[:len(in)-1]
 	header, err := hashcash.ParseHeader(in)
 	if err != nil {
-		h.log.Error("failed to verify header", "err", err.Error())
-		return
+		return fmt.Errorf("failed to parse header: %w", err)
 	}
 
 	err = h.verifier.Verify(header)
 	if err != nil {
-		h.log.Error("failed to verify header", "err", err.Error())
-		return
+		return fmt.Errorf("failed to verify header: %w", err)
 	}
 
 	quote, err := h.storage.GetRandomQuote(ctx)
 	if err != nil {
-		h.log.Error("failed to get random quote", "err", err.Error())
-		return
+		return fmt.Errorf("failed to get random quote: %w", err)
 	}
 
-	_, err = w.Write([]byte(quote))
+	_, err = w.Write([]byte(quote + "\n"))
 	if err != nil {
-		h.log.Error("failed to write data", "err", err.Error())
-		return
+		return fmt.Errorf("failed to write data: %w", err)
 	}
+
 	h.log.Info("successfully handled")
+	return nil
 }

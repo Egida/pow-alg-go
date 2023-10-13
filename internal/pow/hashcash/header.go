@@ -37,10 +37,10 @@ func (h *Header) String() string {
 	return fmt.Sprintf("%d:%d:%d:%s::%s:%d", h.Ver, h.Bits, h.Date.Unix(), h.Resource, h.Rand, h.Counter)
 }
 
-func (h *Header) Hash() []byte {
+func (h *Header) Hash() string {
 	hash := sha1.New()
 	hash.Write([]byte(h.String()))
-	return hash.Sum(nil)
+	return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
 const hashcashLength = 7
@@ -64,23 +64,23 @@ func ParseHeader(header string) (Header, error) {
 		return out, ErrInvalidHeaderBits
 	}
 
-	out.Counter, err = strconv.ParseInt(vals[2], 10, 64)
+	out.Counter, err = strconv.ParseInt(vals[6], 10, 64)
 	if err != nil {
 		return out, ErrInvalidHeaderCounter
 	}
 
-	unix, err := strconv.ParseInt(vals[3], 10, 64)
+	unix, err := strconv.ParseInt(vals[2], 10, 64)
 	if err != nil {
 		return out, ErrInvalidHeaderDate
 	}
 	out.Date = time.Unix(unix, 0)
 
-	out.Resource = vals[5]
+	out.Resource = vals[3]
 	if out.Resource == "" {
 		return out, ErrInvalidHeaderResource
 	}
 
-	out.Rand = vals[6]
+	out.Rand = vals[5]
 	if out.Resource == "" {
 		return out, ErrInvalidHeaderRand
 	}

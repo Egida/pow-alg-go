@@ -7,10 +7,9 @@ import (
 	"os"
 
 	"github.com/ivasilkov/pow-alg-go/internal/config"
-	"github.com/ivasilkov/pow-alg-go/internal/handler/server/get_quote"
+	"github.com/ivasilkov/pow-alg-go/internal/handler/client/get_quote"
 	"github.com/ivasilkov/pow-alg-go/internal/pow/hashcash"
-	"github.com/ivasilkov/pow-alg-go/internal/storage/inmem"
-	"github.com/ivasilkov/pow-alg-go/internal/transport/tcp/server"
+	"github.com/ivasilkov/pow-alg-go/internal/transport/tcp/client"
 )
 
 func main() {
@@ -31,22 +30,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Info("server stopped")
+	log.Info("client stopped")
 	os.Exit(0)
 }
 
 func run(ctx context.Context, log *slog.Logger) error {
-	cfg := config.MustNewServerCfg()
+	cfg := config.MustNewClientCfg()
 
-	h := get_quote.NewHandler(log, inmem.NewStorage(), hashcash.New())
+	h := get_quote.NewHandler(log, hashcash.New())
 
-	srv, err := server.NewServer(cfg.Addr, log, h)
+	cl, err := client.NewClient(cfg.ServerAddr, log, h)
 	if err != nil {
 		return fmt.Errorf("server creation error: %w", err)
 	}
-	defer srv.Close()
+	defer cl.Close()
 
-	if err := srv.Run(ctx); err != nil {
+	if err := cl.Run(ctx); err != nil {
 		return fmt.Errorf("server running error: %w", err)
 	}
 

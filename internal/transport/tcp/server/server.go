@@ -9,7 +9,7 @@ import (
 )
 
 type handler interface {
-	Handle(ctx context.Context, r io.Reader, w io.Writer)
+	Handle(ctx context.Context, r io.Reader, w io.Writer) error
 }
 
 type Server struct {
@@ -37,7 +37,23 @@ func (s *Server) Run(ctx context.Context) error {
 				return fmt.Errorf("failed accept connection: %w", err)
 			}
 			s.log.Info("handle connection")
-			go s.handler.Handle(ctx, conn, conn)
+			go s.handleConn(ctx, conn)
+		}
+	}
+}
+
+func (s *Server) handleConn(ctx context.Context, conn net.Conn) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			err := s.handler.Handle(ctx, conn, conn)
+			if err != nil {
+				s.log.Error("failed to handle conn", "err", err)
+				conn.Close()
+				return
+			}
 		}
 	}
 }

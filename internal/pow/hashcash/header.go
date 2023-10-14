@@ -81,7 +81,7 @@ func ParseHeader(header string) (Header, error) {
 	}
 
 	out.Rand = vals[5]
-	if out.Resource == "" {
+	if out.Rand == "" {
 		return out, ErrInvalidHeaderRand
 	}
 

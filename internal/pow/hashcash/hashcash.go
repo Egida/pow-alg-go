@@ -10,8 +10,6 @@ type Hashcash struct {
 	now      func() time.Time
 }
 
-type Opt func(*Hashcash)
-
 const (
 	defaultBits     = 20
 	defaultAttempts = 1 << 20

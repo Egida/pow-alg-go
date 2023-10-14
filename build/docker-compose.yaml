@@ -1,0 +1,24 @@
+version: '3.7'
+
+services:
+  server:
+    build:
+      context: ./..
+      dockerfile: ./build/server/dockerfile
+    environment:
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: '3333'
+    ports:
+      - '3333:3333'
+    restart: 'no'
+
+  client:
+    build:
+      context: ./..
+      dockerfile: ./build/client/dockerfile
+    environment:
+      SERVER_HOST: "server"
+      SERVER_PORT: '3333'
+    restart: 'no'
+    depends_on:
+      - server

@@ -1,11 +1,21 @@
 package config
 
+import (
+	"fmt"
+)
+
 type ServerCfg struct {
-	Addr string
+	Host string
+	Port string
 }
 
 func MustNewServerCfg() *ServerCfg {
 	return &ServerCfg{
-		Addr: MustGetEnv("SERVER_ADDR"),
+		Host: MustGetEnv("SERVER_HOST"),
+		Port: MustGetEnv("SERVER_PORT"),
 	}
+}
+
+func (c *ServerCfg) GetAddr() string {
+	return fmt.Sprintf("%s:%s", c.Host, c.Port)
 }

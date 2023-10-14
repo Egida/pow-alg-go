@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -37,7 +38,12 @@ func (s *Server) Run(ctx context.Context) error {
 				return fmt.Errorf("failed accept connection: %w", err)
 			}
 			s.log.Info("handle connection")
-			go s.handleConn(ctx, conn)
+			go func() {
+				s.handleConn(ctx, conn)
+				if err = conn.Close(); err != nil {
+					s.log.Error("failed to close connection", "err", err.Error())
+				}
+			}()
 		}
 	}
 }
@@ -49,10 +55,11 @@ func (s *Server) handleConn(ctx context.Context, conn net.Conn) {
 			return
 		default:
 			err := s.handler.Handle(ctx, conn, conn)
+			if errors.Is(err, io.EOF) {
+				return
+			}
 			if err != nil {
 				s.log.Error("failed to handle conn", "err", err)
-				conn.Close()
-				return
 			}
 		}
 	}

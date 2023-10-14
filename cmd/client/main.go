@@ -39,7 +39,7 @@ func run(ctx context.Context, log *slog.Logger) error {
 
 	h := get_quote.NewHandler(log, hashcash.New())
 
-	cl, err := client.NewClient(cfg.ServerAddr, log, h)
+	cl, err := client.NewClient(cfg.GetServerAddr(), log, h)
 	if err != nil {
 		return fmt.Errorf("server creation error: %w", err)
 	}

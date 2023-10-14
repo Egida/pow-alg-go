@@ -6,11 +6,10 @@ import (
 	"io"
 	"log/slog"
 	"net"
-	"time"
 )
 
 type handler interface {
-	Handle(ctx context.Context, r io.Reader, w io.Writer)
+	Handle(ctx context.Context, r io.Reader, w io.Writer) error
 }
 
 type Client struct {
@@ -32,14 +31,5 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) Run(ctx context.Context) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-			// send requests each 2 seconds
-			c.handler.Handle(ctx, c.conn, c.conn)
-			time.Sleep(2 * time.Second)
-		}
-	}
+	return c.handler.Handle(ctx, c.conn, c.conn)
 }

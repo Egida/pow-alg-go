@@ -1,13 +1,13 @@
 package get_quote
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"log/slog"
 
 	"github.com/ivasilkov/pow-alg-go/internal/pow/hashcash"
+	"github.com/ivasilkov/pow-alg-go/internal/transport/tcp"
 )
 
 type storage interface {
@@ -29,12 +29,11 @@ func NewHandler(log *slog.Logger, storage storage, verifier verifier) *Handler {
 }
 
 func (h *Handler) Handle(ctx context.Context, r io.Reader, w io.Writer) error {
-	in, err := bufio.NewReader(r).ReadString('\n')
+	in, err := tcp.ReadString(r)
 	if err != nil {
 		return fmt.Errorf("failed to read data: %w", err)
 	}
 
-	in = in[:len(in)-1]
 	header, err := hashcash.ParseHeader(in)
 	if err != nil {
 		return fmt.Errorf("failed to parse header: %w", err)
@@ -50,7 +49,7 @@ func (h *Handler) Handle(ctx context.Context, r io.Reader, w io.Writer) error {
 		return fmt.Errorf("failed to get random quote: %w", err)
 	}
 
-	_, err = w.Write([]byte(quote + "\n"))
+	err = tcp.WriteString(w, quote)
 	if err != nil {
 		return fmt.Errorf("failed to write data: %w", err)
 	}

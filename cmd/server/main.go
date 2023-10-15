@@ -10,6 +10,7 @@ import (
 	"github.com/ivasilkov/pow-alg-go/internal/handler/server/get_quote"
 	"github.com/ivasilkov/pow-alg-go/internal/pow/hashcash"
 	"github.com/ivasilkov/pow-alg-go/internal/storage/inmem"
+	"github.com/ivasilkov/pow-alg-go/internal/storage/redis"
 	"github.com/ivasilkov/pow-alg-go/internal/transport/tcp/server"
 )
 
@@ -38,7 +39,14 @@ func main() {
 func run(ctx context.Context, log *slog.Logger) error {
 	cfg := config.MustNewServerCfg()
 
-	h := get_quote.NewHandler(log, inmem.NewStorage(), hashcash.New())
+	redisStorage, err := redis.New(ctx, cfg.GetRedisAddr())
+	if err != nil {
+		return fmt.Errorf("redis creation error: %w", err)
+	}
+	inMemStorage := inmem.NewStorage()
+	powAlg := hashcash.New()
+
+	h := get_quote.NewHandler(log, inMemStorage, redisStorage, powAlg)
 
 	srv, err := server.NewServer(cfg.GetAddr(), log, h)
 	if err != nil {

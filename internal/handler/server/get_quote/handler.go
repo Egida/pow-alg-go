@@ -10,8 +10,12 @@ import (
 	"github.com/ivasilkov/pow-alg-go/internal/transport/tcp"
 )
 
-type storage interface {
+type quoteStorage interface {
 	GetRandomQuote(ctx context.Context) (string, error)
+}
+
+type hashStorage interface {
+	AddUnique(ctx context.Context, key, value string) error
 }
 
 type verifier interface {
@@ -19,13 +23,14 @@ type verifier interface {
 }
 
 type Handler struct {
-	log      *slog.Logger
-	storage  storage
-	verifier verifier
+	log          *slog.Logger
+	quoteStorage quoteStorage
+	hashStorage  hashStorage
+	verifier     verifier
 }
 
-func NewHandler(log *slog.Logger, storage storage, verifier verifier) *Handler {
-	return &Handler{log: log, storage: storage, verifier: verifier}
+func NewHandler(log *slog.Logger, storage quoteStorage, hashStorage hashStorage, verifier verifier) *Handler {
+	return &Handler{log: log, quoteStorage: storage, hashStorage: hashStorage, verifier: verifier}
 }
 
 func (h *Handler) Handle(ctx context.Context, r io.Reader, w io.Writer) error {
@@ -44,7 +49,12 @@ func (h *Handler) Handle(ctx context.Context, r io.Reader, w io.Writer) error {
 		return fmt.Errorf("failed to verify header: %w", err)
 	}
 
-	quote, err := h.storage.GetRandomQuote(ctx)
+	err = h.hashStorage.AddUnique(ctx, header.Hash(), "0")
+	if err != nil {
+		return fmt.Errorf("failed to save hash: %w", err)
+	}
+
+	quote, err := h.quoteStorage.GetRandomQuote(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get random quote: %w", err)
 	}

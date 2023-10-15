@@ -1,16 +1,25 @@
-version: '3.7'
+version: "3.7"
 
 services:
+  redis:
+    image: redis:7.2.1-alpine
+    ports:
+      - "6379:6379"
+
   server:
     build:
       context: ./..
       dockerfile: ./build/server/dockerfile
     environment:
       SERVER_HOST: "0.0.0.0"
-      SERVER_PORT: '3333'
+      SERVER_PORT: "1234"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
     ports:
-      - '3333:3333'
-    restart: 'no'
+      - "1234:1234"
+    restart: "no"
+    depends_on:
+      - redis
 
   client:
     build:
@@ -18,7 +27,7 @@ services:
       dockerfile: ./build/client/dockerfile
     environment:
       SERVER_HOST: "server"
-      SERVER_PORT: '3333'
-    restart: 'no'
+      SERVER_PORT: "1234"
+    restart: "no"
     depends_on:
       - server

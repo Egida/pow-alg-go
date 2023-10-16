@@ -22,8 +22,11 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Build
-        run: go build -v cmd/app/*.go
+      - name: Build Server
+        run: go build -v cmd/server/*.go
+
+      - name: Build Client
+        run: go build -v cmd/client/*.go
 
       - name: Test
         run: go test -v ./...

@@ -14,7 +14,7 @@ func NewStorage() *Storage {
 }
 
 func (s *Storage) GetRandomQuote(_ context.Context) (string, error) {
-	idx := rand.Intn(len(s.quotes))
+	idx := rand.Intn(len(s.quotes)) //nolint:gosec //no need strong crypto
 	return s.quotes[idx], nil
 }
 

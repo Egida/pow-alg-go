@@ -2,7 +2,7 @@ package hashcash
 
 import (
 	"crypto/rand"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec // using in hashcash by doc
 	"encoding/base64"
 	"fmt"
 	"strconv"
@@ -21,7 +21,7 @@ type Header struct {
 
 func NewHeader(bits int64, resource string, now time.Time) Header {
 	token := make([]byte, 8)
-	rand.Read(token)
+	rand.Read(token) //nolint:all // not need handle
 
 	return Header{
 		Ver:      1,
@@ -38,7 +38,7 @@ func (h *Header) String() string {
 }
 
 func (h *Header) Hash() string {
-	hash := sha1.New()
+	hash := sha1.New() //nolint:gosec // using in hashcash by doc
 	hash.Write([]byte(h.String()))
 	return fmt.Sprintf("%x", hash.Sum(nil))
 }

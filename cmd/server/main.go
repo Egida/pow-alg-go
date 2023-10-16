@@ -29,11 +29,10 @@ func main() {
 
 	if err := run(ctx, log); err != nil {
 		log.Error(err.Error())
-		os.Exit(1)
+		return
 	}
 
 	log.Info("server stopped")
-	os.Exit(0)
 }
 
 func run(ctx context.Context, log *slog.Logger) error {
@@ -52,7 +51,7 @@ func run(ctx context.Context, log *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("server creation error: %w", err)
 	}
-	defer srv.Close()
+	defer srv.Close() //nolint:errcheck //close fn
 
 	if err := srv.Run(ctx); err != nil {
 		return fmt.Errorf("server running error: %w", err)

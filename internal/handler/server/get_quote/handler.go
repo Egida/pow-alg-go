@@ -10,14 +10,17 @@ import (
 	"github.com/ivasilkov/pow-alg-go/internal/transport/tcp"
 )
 
+//go:generate ../../../../bin/mockery --name quoteStorage
 type quoteStorage interface {
 	GetRandomQuote(ctx context.Context) (string, error)
 }
 
+//go:generate ../../../../bin/mockery --name hashStorage
 type hashStorage interface {
 	AddUnique(ctx context.Context, key, value string) error
 }
 
+//go:generate ../../../../bin/mockery --name verifier
 type verifier interface {
 	Verify(h hashcash.Header) error
 }
@@ -29,8 +32,18 @@ type Handler struct {
 	verifier     verifier
 }
 
-func NewHandler(log *slog.Logger, storage quoteStorage, hashStorage hashStorage, verifier verifier) *Handler {
-	return &Handler{log: log, quoteStorage: storage, hashStorage: hashStorage, verifier: verifier}
+func NewHandler(
+	log *slog.Logger,
+	storage quoteStorage,
+	hashStorage hashStorage,
+	verifier verifier,
+) *Handler {
+	return &Handler{
+		log:          log,
+		quoteStorage: storage,
+		hashStorage:  hashStorage,
+		verifier:     verifier,
+	}
 }
 
 func (h *Handler) Handle(ctx context.Context, r io.Reader, w io.Writer) error {
